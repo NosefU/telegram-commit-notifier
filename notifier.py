@@ -165,9 +165,22 @@ class Database:
         with psycopg2.connect(dbname=self.params.name, user=self.params.login,
                               password=self.params.password, host=self.params.host) as conn:
             with conn.cursor(cursor_factory=DictCursor) as cursor:
-                cursor.execute('SELECT telegram_id FROM users WHERE id = %s', str(user_id))
-                response = cursor.fetchone()
-        return response['telegram_id'] if response else None
+                cursor.execute('SELECT telegram_id FROM users WHERE id = %s', (str(user_id), ))
+                return cursor.fetchone()[0]
+
+    def get_user_timezone(self, user_id):
+        with psycopg2.connect(dbname=self.params.name, user=self.params.login,
+                              password=self.params.password, host=self.params.host) as conn:
+            with conn.cursor(cursor_factory=DictCursor) as cursor:
+                cursor.execute('SELECT timezone FROM users WHERE id = %s', (str(user_id), ))
+                return cursor.fetchone()[0]
+
+    def update_checkout_time(self, repo):
+        with psycopg2.connect(dbname=self.params.name, user=self.params.login,
+                              password=self.params.password, host=self.params.host) as conn:
+            with conn.cursor(cursor_factory=DictCursor) as cursor:
+                cursor.execute('UPDATE repos SET last_checkout = %s WHERE url = %s AND user_id = %s',
+                               (datetime.datetime.now(), repo.params.url, repo.params.owner_id))
 
 
 class DBParams:
