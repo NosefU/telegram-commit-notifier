@@ -82,6 +82,7 @@ class Repo:
         if os.path.exists(self.local_path):
             shutil.rmtree(self.local_path)
 
+    @property
     def last_commits(self):
         self.clone()
         last_raw_commits = {}
@@ -185,7 +186,7 @@ if __name__ == '__main__':
     database = Database(DBParams.from_dict(os.environ))
     for repo in database.get_repos():
         telegram_id = database.get_telegram_id(repo.params.owner_id)
-        for commit in repo.last_commits():
+        for commit in repo.last_commits:
             # Формируем пост для телеги
             telegram_message = (f'`{commit["branch"]}`   *{commit["committer"]}*\n'
                                 f'_{commit["timestamp"].strftime("%H:%M:%S %d/%m/%Y")}_\n\n'
