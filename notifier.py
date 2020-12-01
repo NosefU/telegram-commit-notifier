@@ -191,7 +191,7 @@ if __name__ == '__main__':
             # Формируем пост для телеги
             telegram_message = (f'*{commit["repo"]}*\n'
                                 f'`{commit["branch"]}`   *{commit["committer"]}*\n'
-                                f'_{commit["timestamp"].strftime("%H:%M:%S %d/%m/%Y")}_\n\n'
+                                f'_{commit["timestamp"].strftime("%H:%M:%S %d.%m.%Y")}_\n\n'
                                 f'{commit["message"]}'
                                 )
             try_send_message(bot, chat_id=telegram_id, text=telegram_message)
