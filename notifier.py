@@ -105,9 +105,9 @@ class Repo:
             shutil.rmtree(self.local_path)
 
     def last_commits(self):
+        self.clone()
         last_raw_commits = {}
         for branch_name in self.branches:
-            # TODO Проверить, будет ли работать без приведения к листу
             last_raw_commits[branch_name] = list(self._repo.iter_commits(branch_name, max_count=50))
 
         for branch, raw_commits_list in last_raw_commits.items():
@@ -203,84 +203,17 @@ class DBParams:
 
 if __name__ == '__main__':
 
+    bot = telegram.Bot(token=TLG_TOKEN, request=TLG_REQUEST if TLG_PROXIFY else None)
     database = Database(DBParams.from_dict(os.environ))
     for repo in database.get_repos():
-        repo.clone()
+        telegram_id = database.get_telegram_id(repo.params.owner_id)
         for commit in repo.last_commits():
-            print(commit['message'])
+            # Формируем пост для телеги
+            telegram_message = (f'`{commit["branch"]}`   *{commit["committer"]}*\n'
+                                f'_{commit["timestamp"].strftime("%H:%M:%S %d/%m/%Y")}_\n\n'
+                                f'{commit["message"]}'
+                                )
+            try_send_message(bot, chat_id=telegram_id, text=telegram_message)
+        database.update_checkout_time(repo)
 
 
-    # print(locals())
-    # Инициализируем бота
-    # bot = telegram.Bot(token=TLG_TOKEN, request=TLG_REQUEST if TLG_PROXIFY else None)
-    # while True:
-    #
-    #     for record in cursor:
-    #         # some actions for getting repo and commits
-    #         # some actions for sending messages
-    #         print(dict(record))
-    #
-    #     time.sleep(60)
-
-
-
-        #
-        # conn = psycopg2.connect(dbname=db_name, user=db_user,
-        #                         password=db_pass, host=db_host)
-        # cursor = conn.cursor(cursor_factory=DictCursor)
-        # cursor.execute(
-        #     "SELECT users.telegram_id AS telegram_id, temp.* FROM temp JOIN users ON users.id = temp.user_id WHERE telegram_id='118750337' LIMIT 10")
-
-
-    # try_send_message(bot, chat_id=TLG_CHAT_ID, text='Bot connected')
-#
-# # Текущее время чтобы пинать в чат коммиты, появившиеся после запуска скрипта
-# last_timestamp = datetime.datetime.now()
-#
-# while True:
-#     clear_repo_dir(LOCAL_REPO_PATH)     # На всякий случай проверяем и сносим директорию репы
-#     repo = try_repo_clone(HTTPS_REMOTE_URL, LOCAL_REPO_PATH)
-#     origin = repo.remotes.origin
-#
-#     # Получаем 50 последних коммитов из каждой ветки
-#     repo_branches_names = [branch.name for branch in repo.remotes.origin.refs if branch.name != 'origin/HEAD']
-#     last_raw_commits = {}
-#     for branch_name in repo_branches_names:
-#         last_raw_commits[branch_name] = list(repo.iter_commits(branch_name, max_count=50))
-#
-#     # Формируем свой список коммитов, с которым нам будет удобно работать
-#     last_commits = []
-#     for branch, raw_commits_list in last_raw_commits.items():
-#         for raw_commit in raw_commits_list:
-#             if raw_commit.committed_date > last_timestamp.timestamp():  # Фильтруем коммиты по таймстампу
-#                 commit = dict()
-#                 # Чистим сообщение от переносов строк, удаляем завершающие пробелы и экранируем подчёркивания и звёздочки
-#                 commit['branch'] = branch
-#                 commit['message'] = raw_commit.message.replace('\n', ' ').replace('_', '\_').replace('*', '\*').rstrip()
-#                 commit['committer'] = str(raw_commit.committer)
-#                 # Таймстамп коммита сразу преобразуем в datetime
-#                 commit['timestamp'] = datetime.datetime.fromtimestamp(raw_commit.committed_date)
-#                 last_commits.append(commit)
-#
-#     if last_commits:
-#         print(f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")} '
-#               f'[i] Git: We have {len(last_commits)} new commits')
-#         # отсортируем коммиты не по ветке, а по таймстампу, чтобы получился хронологический лог
-#         last_commits.sort(key=lambda commit: commit['timestamp'])
-#         for commit in last_commits:
-#             # Формируем пост для телеги
-#             telegram_message = (f'`{commit["branch"]}`   *{commit["committer"]}*\n'
-#                                 f'_{commit["timestamp"].strftime("%H:%M:%S %d/%m/%Y")}_\n\n'
-#                                 f'{commit["message"]}'
-#                                 )
-#
-#             # Отправляем пост в телеграм
-#             bot.sendMessage(chat_id=TLG_CHAT_ID, text=telegram_message, parse_mode='Markdown')
-#
-#             # обновляем контрольный таймстамп временем последнего коммита
-#             last_timestamp = commit['timestamp']
-#     else:
-#         print(f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")} [i] Git: No new commits')
-#
-#     clear_repo_dir(LOCAL_REPO_PATH)     # подчищаем за собой диск
-#     time.sleep(60)
