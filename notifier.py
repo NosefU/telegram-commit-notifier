@@ -73,7 +73,7 @@ class Repo:
                 # TODO Избавиться от бесконечных попыток получить репу
                 time.sleep(2)
             else:
-               break
+                break
 
         self.origin = self._repo.remotes.origin
         self.branches = [branch.name for branch in self.origin.refs if branch.name != 'origin/HEAD']
