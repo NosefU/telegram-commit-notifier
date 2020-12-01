@@ -108,7 +108,7 @@ class Repo:
             last_raw_commits[branch_name] = list(self._repo.iter_commits(branch_name, max_count=50))
 
         for branch, raw_commits_list in last_raw_commits.items():
-            for raw_commit in raw_commits_list:
+            for raw_commit in raw_commits_list[::-1]:
                 if raw_commit.committed_date > self.params.last_checkout.timestamp():  # Фильтруем коммиты по таймстампу
                     commit = dict()
                     # Чистим сообщение от переносов строк, удаляем завершающие пробелы.
