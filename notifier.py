@@ -46,9 +46,10 @@ TLG_REQUEST = telegram.utils.request.Request(
     # }
 )
 
+
 class RepoParams:
-    def __init__(self, last_checkout, url, login='', password='', owner=''):
-        self.owner = owner
+    def __init__(self, last_checkout, url, login='', password='', owner_id=''):
+        self.owner_id = owner_id
         self.last_checkout = last_checkout
         self.login = login
         self.password = password
@@ -60,12 +61,12 @@ class RepoParams:
 
     @classmethod
     def from_dict(cls, data):
-        owner = data['owner']
+        owner_id = data['owner_id']
         url = data['url']
         login = data['login']
         password = data['pass']
         last_checkout = data['last_checkout']
-        return cls(last_checkout, url, login, password, owner)
+        return cls(last_checkout, url, login, password, owner_id)
 
 
 class Repo:
@@ -154,9 +155,8 @@ class Database:
         with psycopg2.connect(dbname=self.params.name, user=self.params.login,
                               password=self.params.password, host=self.params.host) as conn:
             with conn.cursor(cursor_factory=DictCursor) as cursor:
-                cursor.execute('SELECT url, login, pass, last_checkout, users.telegram_id as owner '
-                               'FROM temp JOIN users ON users.id = temp.user_id '
-                               'ORDER BY user_id')
+                cursor.execute('SELECT url, login, pass, last_checkout, user_id as owner_id '
+                               'FROM repos ORDER BY user_id')
                 repos = cursor.fetchall()
         for repo in repos:
             yield Repo(RepoParams.from_dict(repo))
@@ -197,6 +197,7 @@ class DBParams:
         login = data['DB_USER']
         password = data['DB_PASS']
         return cls(host, name, login, password)
+
 
 if __name__ == '__main__':
 
