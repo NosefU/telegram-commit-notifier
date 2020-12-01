@@ -48,11 +48,12 @@ TLG_REQUEST = telegram.utils.request.Request(
 
 
 class RepoParams:
-    def __init__(self, last_checkout, url, login='', password='', owner_id=''):
+    def __init__(self, last_checkout, url, repo_id, login='', password='', owner_id=''):
         self.owner_id = owner_id
         self.last_checkout = last_checkout
         self.login = login
         self.password = password
+        self.id = repo_id
         if login:
             self.remote_url = f'https://{login}:{password}@{url.replace("https://", "")}'
         else:
@@ -66,7 +67,8 @@ class RepoParams:
         login = data['login']
         password = data['pass']
         last_checkout = data['last_checkout']
-        return cls(last_checkout, url, login, password, owner_id)
+        repo_id = data['id']
+        return cls(last_checkout, url, repo_id, login, password, owner_id)
 
 
 class Repo:
@@ -155,7 +157,7 @@ class Database:
         with psycopg2.connect(dbname=self.params.name, user=self.params.login,
                               password=self.params.password, host=self.params.host) as conn:
             with conn.cursor(cursor_factory=DictCursor) as cursor:
-                cursor.execute('SELECT url, login, pass, last_checkout, user_id as owner_id '
+                cursor.execute('SELECT id, url, login, pass, last_checkout, user_id as owner_id '
                                'FROM repos ORDER BY user_id')
                 repos = cursor.fetchall()
         for repo in repos:
@@ -179,8 +181,8 @@ class Database:
         with psycopg2.connect(dbname=self.params.name, user=self.params.login,
                               password=self.params.password, host=self.params.host) as conn:
             with conn.cursor(cursor_factory=DictCursor) as cursor:
-                cursor.execute('UPDATE repos SET last_checkout = %s WHERE url = %s AND user_id = %s',
-                               (datetime.datetime.now(), repo.params.url, repo.params.owner_id))
+                cursor.execute('UPDATE repos SET last_checkout = %s WHERE id = %s',
+                               (datetime.datetime.now(), repo.params.id))
 
 
 class DBParams:
