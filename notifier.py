@@ -95,6 +95,7 @@ class Repo:
                     commit = dict()
                     # Чистим сообщение от переносов строк, удаляем завершающие пробелы.
                     # TODO Экранировать подчёркивания и звёздочки нужно будет перед форматированием
+                    commit['repo'] = self.params.name
                     commit['branch'] = branch
                     commit['message'] = raw_commit.message.replace('\n', ' ').replace('_', '\_').replace('*', '\*').rstrip()
                     # commit['message'] = raw_commit.message
@@ -188,7 +189,8 @@ if __name__ == '__main__':
         telegram_id = database.get_telegram_id(repo.params.owner_id)
         for commit in repo.last_commits:
             # Формируем пост для телеги
-            telegram_message = (f'`{commit["branch"]}`   *{commit["committer"]}*\n'
+            telegram_message = (f'*{commit["repo"]}*\n'
+                                f'`{commit["branch"]}`   *{commit["committer"]}*\n'
                                 f'_{commit["timestamp"].strftime("%H:%M:%S %d/%m/%Y")}_\n\n'
                                 f'{commit["message"]}'
                                 )
