@@ -8,31 +8,10 @@ from psycopg2.extras import DictCursor
 import telegram
 import git
 
-# Подтягиваем чувствительные данные из переменных окружения
-# ------------ GIT ------------
-assert 'REPO_URL' in os.environ, 'Environment variable REPO_URL is not exist'
-assert 'GIT_USERNAME' in os.environ, 'Environment variable GIT_USERNAME is not exist'
-assert 'GIT_PASSWORD' in os.environ, 'Environment variable GIT_PASSWORD is not exist'
-# Ссылка на репозиторий
-REPO_URL = os.environ.get('REPO_URL')
-# Имя пользователя, которое с @ в начале (не логин!)
-GIT_USERNAME = os.environ.get('GIT_USERNAME')
-# Пароль от учётки, либо personal access token (в гитлабе получаем в Settings -> Access Tokens
-GIT_PASSWORD = os.environ.get('GIT_PASSWORD')
-
-# собираем ссылку для работы с репозиторием
-HTTPS_REMOTE_URL = f'https://{GIT_USERNAME}:{GIT_PASSWORD}@{REPO_URL.replace("https://", "")}'
-# репу будем клонировать в папку со скриптом
-DEST_NAME = HTTPS_REMOTE_URL[HTTPS_REMOTE_URL.rfind('/') + 1: HTTPS_REMOTE_URL.rfind('.git')]
-LOCAL_REPO_PATH = os.getcwd() + '/' + DEST_NAME
-
 # ------------ Telegram ------------
 assert 'TLG_TOKEN' in os.environ, 'Environment variable TLG_TOKEN is not exist'
-assert 'TLG_CHAT_ID' in os.environ, 'Environment variable TLG_CHAT_ID is not exist'
 # Токен бота телеграма. Получаем у @botfather
 TLG_TOKEN = os.environ.get('TLG_TOKEN')
-# Chat ID получателя. Получаем по ссылке https://api.telegram.org/bot<ВАШ_ТОКЕН>/getUpdates
-TLG_CHAT_ID = os.environ.get('TLG_CHAT_ID')
 # Флаг работы через прокси. Если телега будет работать через прокси, то устанавливаем True
 TLG_PROXIFY = False
 TLG_PROXY = '54.38.81.12:54796'
@@ -74,7 +53,6 @@ class RepoParams:
 class Repo:
     def __init__(self, params):
         self.params = params
-        # TODO Проверить формирование адреса при отсутствии логина/пароля
         # TODO Приводить поля к нужному формату перед их добавлением в базу
         # репу будем клонировать в папку со скриптом
         self.local_path = os.getcwd() + '/temp/' + self.params.name
@@ -215,5 +193,3 @@ if __name__ == '__main__':
                                 )
             try_send_message(bot, chat_id=telegram_id, text=telegram_message)
         database.update_checkout_time(repo)
-
-
