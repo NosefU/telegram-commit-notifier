@@ -13,7 +13,7 @@ CREATE  TABLE repos (
 	url                  text  NOT NULL ,
 	login                text   ,
 	pass                 text   ,
-	last_checkout        timestamp DEFAULT CURRENT_TIMESTAMP  ,
+	last_checkout        timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL ,
 	user_id              integer  NOT NULL ,
 	CONSTRAINT pk_repos PRIMARY KEY ( url, user_id )
  );
