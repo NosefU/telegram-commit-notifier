@@ -6,6 +6,7 @@ future==0.18.2
 gitdb==4.0.2
 gitdb2==4.0.2
 GitPython==3.0.8
+psycopg2-binary==2.8.6
 pycparser==2.20
 PySocks==1.7.1
 python-telegram-bot==12.4.2
